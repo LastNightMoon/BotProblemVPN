@@ -44,7 +44,7 @@ async def cmd_get_error(message: Message, state: FSMContext):
     await message.answer('Расскажите что произошло')
     await state.set_state(err)
 
-@user_router.message(F.text, err)
+@user_router.message(F.text & err)
 async def cmd_get_error(message: Message, state: FSMContext, bot: Bot):
     await message.answer('Уведомление получено, проблему уже решают')
     await state.clear()
