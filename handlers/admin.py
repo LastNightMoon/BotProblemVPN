@@ -41,7 +41,7 @@ async def cmd_login(message: Message, state: FSMContext):
         await state.set_state(Form.general)
     else:
         await message.answer('НЕ Удачно')
-        await state.clear()
+    await state.clear()
 
 @admin_router.message(StateFilter(Form.general))
 async def cmd_general(message: Message, state: FSMContext):
@@ -65,5 +65,5 @@ async def cmd_add_link2(message: Message, state: FSMContext):
         await message.answer("Удачно")
     else:
         await message.answer("Не удачно")
-
+    await state.clear()
 
