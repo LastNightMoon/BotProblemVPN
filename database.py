@@ -52,6 +52,14 @@ class Database:
         self.con.execute('UPDATE users SET date_k = ? WHERE id_chat = ?', (date, id_chat,))
         self.con.commit()
 
+    def command(self, command, count):
+        a = self.con.execute(command)
+        self.con.commit()
+        if count == 1:
+            return a.fetchone()
+        elif count == 2:
+            return a.fetchall()
+
 
 database = Database()
 if __name__ == '__main__':

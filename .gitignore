@@ -2,3 +2,5 @@
 test.py
 links.txt
 users.db
+/.dockerignore
+/compose.yaml
