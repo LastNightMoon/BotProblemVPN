@@ -27,7 +27,8 @@ async def cmd_admin(message: Message, state: FSMContext):
         await message.answer('Введите пароль')
         await state.set_state(Form.login)
         return
-    await cmd_general(message, state)
+    await message.answer("Слушаю")
+    await state.set_state(Form.general)
     # database.create_user(message.from_user.username, message.from_user.id)
     # await message.answer('Вы зарегистрированы')
 
@@ -35,9 +36,9 @@ async def cmd_admin(message: Message, state: FSMContext):
 @admin_router.message(StateFilter(Form.login))
 async def cmd_login(message: Message, state: FSMContext):
     if message.text == settings['SUPER_PASSWORD']:
-        await message.answer('Удачно')
+        await message.answer('Удачно, слушаю')
         database.admin_update(message.from_user.id)
-        await cmd_general(message, state)
+        await state.set_state(Form.general)
     else:
         await message.answer('НЕ Удачно')
         await state.clear()
@@ -46,6 +47,7 @@ async def cmd_login(message: Message, state: FSMContext):
 async def cmd_general(message: Message, state: FSMContext):
     await message.answer(str(database.list_users()))
     await state.clear()
+    await message.answer(str(database.command(message.text, 1)))
 
 @admin_router.message(Command('addlink'))
 async def cmd_add_link(message: Message, state: FSMContext):
@@ -63,4 +65,5 @@ async def cmd_add_link2(message: Message, state: FSMContext):
         await message.answer("Удачно")
     else:
         await message.answer("Не удачно")
+
 
