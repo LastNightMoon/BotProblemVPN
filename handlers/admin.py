@@ -31,7 +31,8 @@ async def cmd_admin(message: Message, state: FSMContext):
     # database.create_user(message.from_user.username, message.from_user.id)
     # await message.answer('Вы зарегистрированы')
 
-@admin_router.message(F.text & StateFilter(Form.login))
+
+@admin_router.message(StateFilter(Form.login))
 async def cmd_login(message: Message, state: FSMContext):
     if message.text == settings['SUPER_PASSWORD']:
         await message.answer('Удачно')
@@ -52,7 +53,8 @@ async def cmd_add_link(message: Message, state: FSMContext):
         await message.answer(str(database.list_users()))
         await state.set_state(Form.cmd_add_link)
 
-@admin_router.message(F.text & StateFilter(Form.cmd_add_link))
+
+@admin_router.message(Form.cmd_add_link)
 async def cmd_add_link2(message: Message, state: FSMContext):
     if re.match("vless://", message.text):
         with open("links.txt", "a", encoding="utf-8") as f:

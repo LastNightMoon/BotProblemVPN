@@ -3,7 +3,7 @@ import sqlite3
 
 class User:
     def __init__(self, chat_id, nick, status, date, link):
-        self.chat_id = "1333756822"
+        self.chat_id = chat_id
         self.nick = nick
         self.status = status
         self.date = date
