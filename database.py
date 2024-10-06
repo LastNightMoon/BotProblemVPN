@@ -1,5 +1,7 @@
 import psycopg2
 
+from setting import settings
+
 
 class User:
     def __init__(self, chat_id, nick, status, date, link):
@@ -20,7 +22,8 @@ class Database:
     def __init__(self):
         # Подключение к базе данных PostgreSQL
         self.conn = psycopg2.connect(
-            dbname='db', user='root', password='pgpwd0', host='80.76.35.132', port='5432'
+            dbname=settings['dbname'], user=settings['user'], password=settings['password'],
+            host=settings['host'], port=settings['port']
         )
         cur = self.conn.cursor()
         # Создание таблицы, если она не существует
@@ -31,6 +34,8 @@ class Database:
                             date_k DATE, 
                             link VARCHAR(255)
                         )''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS links (
+                        link VARCHAR(255))''')
         self.conn.commit()
         cur.close()
 
@@ -64,7 +69,7 @@ class Database:
         return users
 
     def list_admin(self):
-        '''Возвращает список администраторов (status = True)'''
+        """Возвращает список администраторов (status = True)"""
         cur = self.conn.cursor()
         cur.execute("SELECT id_chat, nick, status, date_k, link FROM users WHERE status = True")
         admins = [User(*admin) for admin in cur.fetchall()]
@@ -72,27 +77,52 @@ class Database:
         return admins
 
     def admin_update(self, id_chat):
-        '''Обновляет статус пользователя на admin (status = True)'''
+        """Обновляет статус пользователя на admin (status = True)"""
         cur = self.conn.cursor()
         cur.execute('UPDATE users SET status = True WHERE id_chat = %s', (id_chat,))
         self.conn.commit()
         cur.close()
 
     def update_date_from_id(self, id_chat, date):
-        '''Обновление даты для пользователя с заданным id_chat'''
+        """Обновление даты для пользователя с заданным id_chat"""
         cur = self.conn.cursor()
         cur.execute('UPDATE users SET date_k = %s WHERE id_chat = %s', (date, id_chat))
         self.conn.commit()
         cur.close()
 
     def command(self, command):
-        '''Выполнение произвольного SQL-запроса'''
+        """Выполнение произвольного SQL-запроса"""
         cur = self.conn.cursor()
-        cur.execute(command)
-        self.conn.commit()
-        result = cur.fetchall()
-        cur.close()
+        try:
+            cur.execute(command)
+            self.conn.commit()
+            result = cur.fetchall()
+            cur.close()
+        except Exception as e:
+            print(e)
+            result = e
+            cur.close()
         return result
+
+    def new_link(self, link):
+        """Добавление новой ссылки в таблицу links"""
+        cur = self.conn.cursor()
+        cur.execute('INSERT INTO links (link) VALUES (%s)', (link,))
+        self.conn.commit()
+        cur.close()
+
+    def get_link(self):
+        """Возвращает одну ссылку из таблицы links и удаляет её"""
+        cur = self.conn.cursor()
+        cur.execute('SELECT link FROM links LIMIT 1 FOR UPDATE SKIP LOCKED')
+        link = cur.fetchone()
+        if link:
+            cur.execute('DELETE FROM links WHERE link = %s', (link[0],))
+            self.conn.commit()
+            cur.close()
+            return link[0]
+        cur.close()
+        return None
 
 
 # Инициализация базы данных

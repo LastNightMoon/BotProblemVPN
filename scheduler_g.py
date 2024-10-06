@@ -20,19 +20,19 @@ async def check_date_payment(bot: Bot):
         date = datetime.date(*map(int, user.date.split("-")))
         new_date = datetime.timedelta(days=30) + date
         # Обновление значения даты в базе данных
-        database.update_date_from_id(user.chat_id, new_date.strftime('%Y-%m-%d'))
+        database.update_date_from_id(user.chat_id, new_date)
     for user in database.list_users():
-        if user.date == (datetime.date.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'):
+        if user.date == (datetime.date.today() + datetime.timedelta(days=1)):
             await bot.send_message(user.chat_id, f"Здравствуйте, нужно оплатить")
             await bot.send_message(user.chat_id, f"{get_link_for_payment(user)}")
-        elif (datetime.date.today() - datetime.timedelta(days=8)).strftime('%Y-%m-%d') < user.date < (
-                datetime.date.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'):
+        elif (datetime.date.today() - datetime.timedelta(days=8)) < user.date < (
+                datetime.date.today() + datetime.timedelta(days=1)):
 
             await bot.send_message(user.chat_id, "Отключаем вас, оплатите в течении недели вот ссылка")
             await bot.send_message(user.chat_id, f"{get_link_for_payment(user)}")
             for admin in admins:
                 await bot.send_message(admin.chat_id, str(user) + "Вырубай его")
-        elif (datetime.date.today() - datetime.timedelta(days=8)).strftime('%Y-%m-%d') == user.date:
+        elif (datetime.date.today() - datetime.timedelta(days=8)) == user.date:
             await bot.send_message(user.chat_id, "Удаляем вас, за неправомерное использование возможен запрет на использование будте аккуратны")
             for admin in admins:
                 await bot.send_message(admin.chat_id, str(user) + "удали его")

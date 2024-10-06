@@ -6,12 +6,12 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
-from handlers.admin import admin_router
-from handlers.usually_user import user_router
-from scheduler_g import check_date_payment, check_payment
+from admin.admin import admin_router
+from user.usually_user import user_router
+from scheduler_g import check_date_payment
 from setting import settings
 from apscheduler.triggers.cron import CronTrigger
-from apscheduler.triggers.interval import IntervalTrigger
+
 
 async def main():
     dp.include_router(admin_router)

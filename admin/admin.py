@@ -4,52 +4,32 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.filters.state import State, StatesGroup
 import re
+
+from admin.midleware import AdminMiddleware
 from database import database
 from setting import settings
-
-
-# Состояния для администратора
-class Form(StatesGroup):
-    login = State()
-    general = State()
-    cmd_add_link = State()
-
+from utils import Form, IsAdminFilter
 
 admin_router = Router()
+admin_router.message.middleware(AdminMiddleware())
 
-# Команда /admin — вход в режим администратора
+
 @admin_router.message(Command('admin'))
 async def cmd_admin(message: Message, state: FSMContext):
-    admin = database.find_user(message.from_user.id)
-    if not admin:
-        await message.answer('⚠️ Вы ещё не проходили регистрацию. Пожалуйста, используйте команду /start.')
-        return
-    if not admin.status:
-        await message.answer('🔐 Введите пароль для подтверждения прав администратора.')
-        await state.set_state(Form.login)
-        return
     await message.answer("🔧 Добро пожаловать в режим администратора. Слушаю ваши команды.")
+    await message.answer("📋 Список зарегистрированных пользователей:")
+    await message.answer(str(database.list_users()))
     await state.set_state(Form.general)
-
-
-# Проверка пароля администратора
-@admin_router.message(StateFilter(Form.login))
-async def cmd_login(message: Message, state: FSMContext):
-    if message.text == settings['SUPER_PASSWORD']:
-        await message.answer('✅ Пароль успешно подтверждён. Теперь вы можете управлять ботом.')
-        database.admin_update(message.from_user.id)
-        await state.set_state(Form.general)
-    else:
-        await message.answer('❌ Неправильный пароль. Попробуйте ещё раз.')
-    await state.clear()
+    await message.answer("Введите SQL-запрос или используйте команды для управления.")
 
 
 # Основное состояние администратора для ввода команд
 @admin_router.message(StateFilter(Form.general))
 async def cmd_general(message: Message, state: FSMContext):
-    await message.answer("📋 Список зарегистрированных пользователей:")
-    await message.answer(str(database.list_users()))
-    await message.answer("Введите SQL-запрос или используйте команды для управления.")
+    try:
+        await message.answer(database.command(message.text))
+    except Exception as e:
+        print(e)
     await state.clear()
 
 
@@ -74,16 +54,4 @@ async def cmd_add_link2(message: Message, state: FSMContext):
         await message.answer("❌ Неверный формат ссылки. Убедитесь, что она начинается с `vless://`.")
     await state.clear()
 
-
-# Команда /help — помощь для администраторов
-@admin_router.message(Command('help'))
-async def cmd_admin_help(message: Message):
-    help_text = (
-        "ℹ️ <b>Помощь для администратора:</b>\n"
-        "1. <b>/admin</b> — Вход в режим администратора (введите пароль).\n"
-        "2. <b>/addlink</b> — Добавить новую ссылку формата vless://.\n"
-        "3. <b>/help</b> — Показать это сообщение помощи.\n\n"
-        "🚫 <i>Будьте осторожны с командами и SQL-запросами, они могут повлиять на работу бота и базы данных.</i>"
-    )
-    await message.answer(help_text)
 

@@ -3,9 +3,12 @@ from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
-from aiogram.filters.state import State
+from aiogram.filters.state import State, StateFilter
 
+from admin.admin import Form
 from database import database
+from setting import settings
+from utils import IsAdminFilter
 from yoomoney_work import get_link_for_payment
 
 user_router = Router()
@@ -32,17 +35,50 @@ async def cmd_start(message: Message, bot: Bot):
         for admin in database.list_admin():
             await bot.send_message(admin, "⚠️ Внимание, в файле закончились ссылки.")
 
+@user_router.message(Command('admin'))
+async def cmd_admin(message: Message, state: FSMContext):
+    admin = database.find_user(message.from_user.id)
+    if not admin:
+        await message.answer('⚠️ Вы ещё не проходили регистрацию. Пожалуйста, используйте команду /start.')
+        return
+    if not admin.status:
+        await message.answer('🔐 Введите пароль для подтверждения прав администратора.')
+        await state.set_state(Form.login)
+        return
+    await message.answer("🔧 Добро пожаловать в режим администратора. Слушаю ваши команды.")
+    await state.set_state(Form.general)
+
+# Проверка пароля администратора
+@user_router.message(StateFilter(Form.login))
+async def cmd_login(message: Message, state: FSMContext):
+    if message.text == settings['SUPER_PASSWORD']:
+        await message.answer('✅ Пароль успешно подтверждён. Теперь вы можете управлять ботом.')
+        database.admin_update(message.from_user.id)
+        await state.set_state(Form.general)
+    else:
+        await message.answer('❌ Неправильный пароль. Попробуйте ещё раз.')
+        await state.clear()
+
 # Команда /help
 @user_router.message(Command("help"))
 async def cmd_help(message: Message, bot: Bot):
-    help_text = (
-        "ℹ️ <b>Помощь по боту:</b>\n"
-        "1. <b>/start</b> — Регистрация и получение ссылки для VPN.\n"
-        "2. <b>/payment</b> — Получить ссылку для оплаты (доступно за день до срока оплаты).\n"
-        "3. <b>/error</b> — Сообщить о проблеме.\n"
-        "4. <b>/help</b> — Показать это сообщение помощи.\n\n"
-        "📌 Для дополнительных вопросов обращайтесь к администрации."
-    )
+    if database.find_user(message.from_user.id):
+        help_text = (
+            "ℹ️ <b>Помощь для администратора:</b>\n"
+            "1. <b>/admin</b> — Вход в режим администратора (введите пароль).\n"
+            "2. <b>/addlink</b> — Добавить новую ссылку формата vless://.\n"
+            "3. <b>/help</b> — Показать это сообщение помощи.\n\n"
+            "🚫 <i>Будьте осторожны с командами и SQL-запросами, они могут повлиять на работу бота и базы данных.</i>"
+        )
+    else:
+        help_text = (
+            "ℹ️ <b>Помощь по боту:</b>\n"
+            "1. <b>/start</b> — Регистрация и получение ссылки для VPN.\n"
+            "2. <b>/payment</b> — Получить ссылку для оплаты (доступно за день до срока оплаты).\n"
+            "3. <b>/error</b> — Сообщить о проблеме.\n"
+            "4. <b>/help</b> — Показать это сообщение помощи.\n\n"
+            "📌 Для дополнительных вопросов обращайтесь к администрации."
+        )
     await message.answer(help_text)
 
 # Команда /error
@@ -72,3 +108,5 @@ async def cmd_get_error(message: Message, state: FSMContext, bot: Bot):
         await bot.send_message(admin.chat_id,
                                f"🔔 Новое сообщение о проблеме от("
                                f"{database.find_user(message.from_user.id)}):\n\n{message.text}")
+
+# user_router.message(not IsAdminFilter()).command("help")(cmd_help)
