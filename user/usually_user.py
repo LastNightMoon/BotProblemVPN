@@ -62,7 +62,7 @@ async def cmd_login(message: Message, state: FSMContext):
 # Команда /help
 @user_router.message(Command("help"))
 async def cmd_help(message: Message, bot: Bot):
-    if database.find_user(message.from_user.id):
+    if database.find_user(message.from_user.id).status:
         help_text = (
             "ℹ️ <b>Помощь для администратора:</b>\n"
             "1. <b>/admin</b> — Вход в режим администратора (введите пароль).\n"
