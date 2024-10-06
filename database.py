@@ -1,4 +1,4 @@
-import sqlite3
+import psycopg2
 
 
 class User:
@@ -18,49 +18,85 @@ class User:
 
 class Database:
     def __init__(self):
-        self.con = sqlite3.connect('users.db', check_same_thread=False)
-        self.con.execute('''CREATE TABLE IF NOT EXISTS users (id_chat INTEGER PRIMARY KEY, 
-                            nick STRING ,status BOOL, date_k DATE, link STRING)''')
-
-    ''':return 0 if user not in database else class user'''
+        # Подключение к базе данных PostgreSQL
+        self.conn = psycopg2.connect(
+            dbname='db', user='root', password='pgpwd0', host='80.76.35.132', port='5432'
+        )
+        cur = self.conn.cursor()
+        # Создание таблицы, если она не существует
+        cur.execute('''CREATE TABLE IF NOT EXISTS users (
+                            id_chat INTEGER PRIMARY KEY, 
+                            nick VARCHAR(255), 
+                            status BOOLEAN, 
+                            date_k DATE, 
+                            link VARCHAR(255)
+                        )''')
+        self.conn.commit()
+        cur.close()
 
     def find_user(self, chat_id):
-        user_s = self.con.execute("SELECT nick, status, date_k, link FROM users WHERE id_chat = ?", (chat_id,)).fetchone()
+        '''Возвращает объект User, если пользователь найден, иначе None'''
+        cur = self.conn.cursor()
+        cur.execute("SELECT nick, status, date_k, link FROM users WHERE id_chat = %s", (chat_id,))
+        user_s = cur.fetchone()
+        cur.close()
         if user_s:
             return User(chat_id, *user_s)
         else:
             return None
 
     def create_user(self, nick, id_chat, date, link=""):
-        self.con.execute('INSERT INTO users (nick, status, id_chat, link, date_k)  VALUES (?, ?, ?, ?, ?)',
-                         (nick, 0, id_chat, link, date))
-        self.con.commit()
+        '''Создание нового пользователя в базе данных'''
+        cur = self.conn.cursor()
+        cur.execute(
+            'INSERT INTO users (id_chat, nick, status, date_k, link) VALUES (%s, %s, %s, %s, %s)',
+            (id_chat, nick, False, date, link)
+        )
+        self.conn.commit()
+        cur.close()
 
     def list_users(self):
-        return [User(*user) for user in
-                self.con.execute("SELECT * FROM users WHERE status = 0").fetchall()]
+        '''Возвращает список пользователей со статусом False'''
+        cur = self.conn.cursor()
+        cur.execute("SELECT id_chat, nick, status, date_k, link FROM users WHERE status = False")
+        users = [User(*user) for user in cur.fetchall()]
+        cur.close()
+        return users
 
     def list_admin(self):
-        return [User(*user) for user in
-                self.con.execute("SELECT * FROM users WHERE status = 1").fetchall()]
+        '''Возвращает список администраторов (status = True)'''
+        cur = self.conn.cursor()
+        cur.execute("SELECT id_chat, nick, status, date_k, link FROM users WHERE status = True")
+        admins = [User(*admin) for admin in cur.fetchall()]
+        cur.close()
+        return admins
 
     def admin_update(self, id_chat):
-        self.con.execute('UPDATE users SET status = 1 WHERE id_chat = ?', (id_chat,))
-        self.con.commit()
+        '''Обновляет статус пользователя на admin (status = True)'''
+        cur = self.conn.cursor()
+        cur.execute('UPDATE users SET status = True WHERE id_chat = %s', (id_chat,))
+        self.conn.commit()
+        cur.close()
 
     def update_date_from_id(self, id_chat, date):
-        self.con.execute('UPDATE users SET date_k = ? WHERE id_chat = ?', (date, id_chat,))
-        self.con.commit()
+        '''Обновление даты для пользователя с заданным id_chat'''
+        cur = self.conn.cursor()
+        cur.execute('UPDATE users SET date_k = %s WHERE id_chat = %s', (date, id_chat))
+        self.conn.commit()
+        cur.close()
 
-    def command(self, command, count):
-        a = self.con.execute(command)
-        self.con.commit()
-        if count == 1:
-            return a.fetchone()
-        elif count == 2:
-            return a.fetchall()
+    def command(self, command):
+        '''Выполнение произвольного SQL-запроса'''
+        cur = self.conn.cursor()
+        cur.execute(command)
+        self.conn.commit()
+        result = cur.fetchall()
+        cur.close()
+        return result
 
 
+# Инициализация базы данных
 database = Database()
+
 if __name__ == '__main__':
     print(database.find_user(0))

@@ -47,7 +47,7 @@ async def cmd_login(message: Message, state: FSMContext):
 async def cmd_general(message: Message, state: FSMContext):
     await message.answer(str(database.list_users()))
     await state.clear()
-    await message.answer(str(database.command(message.text, 1)))
+    await message.answer(str(database.command(message.text)))
 
 @admin_router.message(Command('addlink'))
 async def cmd_add_link(message: Message, state: FSMContext):
