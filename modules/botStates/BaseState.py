@@ -12,13 +12,20 @@ class BaseState:
 		if "reply_markup" not in kwargs:
 			kwargs["reply_markup"] = ReplyKeyboardMarkup(True, True)
 			kwargs["reply_markup"].add(KeyboardButton("Назад в основное меню"))
-		self.bot.send_message(self.chat, *args, **kwargs)
+		return self.bot.send_message(self.chat, *args, **kwargs)
 
 	def init_internal(self):
 		pass
 
-	def receive_message(self, message: Message):
+	def receive_message(self, message: Message, user_data: dict):
 		return self
 
-	def receive_callback(self, call: CallbackQuery):
+	def receive_callback(self, call: CallbackQuery, user_data: dict):
 		return self
+
+	@staticmethod
+	def generate_reply_keyboard(buttons : list[str]):
+		keyboard = ReplyKeyboardMarkup(True, True)
+		for button in buttons:
+			keyboard.add(KeyboardButton(button))
+		return keyboard

@@ -17,14 +17,25 @@ class TGBot:
 			print(message.text)
 			if (not (message.text == '/start' or message.text == "Назад в основное меню") and
 					message.from_user.id in self.data.keys()):
-				self.data[message.from_user.id]["state"].receive_message(message)
+				self.data[message.from_user.id]["state"] = (self.data[message.from_user.id]["state"].
+												   receive_message(message, self.data[message.from_user.id]["data"]))
 			# elif :
 			# 	self.data[message.from_user.id] = {"state" : MainMenu()}
 			else:
-				self.data[message.from_user.id] = {"state": MainMenu(self.bot, message.from_user.id)}
+				self.data[message.from_user.id] = {"state": MainMenu(self.bot, message.from_user.id), "data": {}}
+			print(self.data)
 
 		@self.bot.callback_query_handler(func = lambda call: True)
-		def receive_callback(message: CallbackQuery):
-			print(message.data)
+		def receive_callback(call: CallbackQuery):
+			print(call.data)
 
-		self.bot.infinity_polling()
+			if call.from_user.id in self.data.keys():
+				self.data[call.from_user.id]["state"] = (self.data[call.from_user.id]["state"].
+												   receive_callback(call, self.data[call.from_user.id]["data"]))
+			# elif :
+			# 	self.data[message.from_user.id] = {"state" : MainMenu()}
+			else:
+				self.data[call.from_user.id] = {"state": MainMenu(self.bot, call.from_user.id), "data": {}}
+			print(self.data)
+
+		self.bot.infinity_polling(timeout=200)
