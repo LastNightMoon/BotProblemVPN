@@ -1,6 +1,7 @@
-/settings.json
 test.py
-links.txt
-users.db
 /.dockerignore
-/compose.yaml
+credit.env
+.venv
+.idea
+.gitignore
+
