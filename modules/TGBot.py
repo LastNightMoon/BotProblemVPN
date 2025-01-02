@@ -19,8 +19,8 @@ class TGBot:
 					message.from_user.id in self.data.keys()):
 				self.data[message.from_user.id]["state"] = (self.data[message.from_user.id]["state"].
 												   receive_message(message, self.data[message.from_user.id]["data"]))
-			# elif :
-			# 	self.data[message.from_user.id] = {"state" : MainMenu()}
+			elif message.text == "/start":
+				self.data[message.from_user.id] = {"state" : NewUserState(self.bot, self.data[message.from_user.id]["data"])}
 			else:
 				self.data[message.from_user.id] = {"state": MainMenu(self.bot, message.from_user.id), "data": {}}
 			print(self.data)
