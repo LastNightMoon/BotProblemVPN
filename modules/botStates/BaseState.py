@@ -1,17 +1,27 @@
+from typing import Union
+
 import telebot
+from functools import singledispatchmethod
 from telebot.types import Message, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton
 
 
 class BaseState:
-	def __init__(self, bot: telebot.TeleBot, chat: int):
-		self.bot = bot
-		self.chat = chat
+	def __init__(self, bot_or_obj: Union[telebot.TeleBot, 'BaseState'], chat: int = None, user_name: str = None):
+		if isinstance(bot_or_obj, telebot.TeleBot):
+			self.bot = bot_or_obj
+			self.chat = chat
+			self.user_name = user_name
+		elif isinstance(bot_or_obj, BaseState):
+			self.bot = bot_or_obj.bot
+			self.chat = bot_or_obj.chat
+			self.user_name = bot_or_obj.user_name
 		self.init_internal()
 
 	def send(self, *args, **kwargs):
 		if "reply_markup" not in kwargs:
-			kwargs["reply_markup"] = ReplyKeyboardMarkup(True, True)
+			kwargs["reply_markup"] = ReplyKeyboardMarkup(resize_keyboard=True)
 			kwargs["reply_markup"].add(KeyboardButton("Назад в основное меню"))
+		kwargs["reply_markup"].resize_keyboard=True
 		return self.bot.send_message(self.chat, *args, **kwargs)
 
 	def init_internal(self):

@@ -6,8 +6,9 @@ from modules.botStates.BaseState import BaseState
 
 class OSHelpState(BaseState):
     main_button = {
-        "Windows" : ["Шаг 1", "Шаг 2"], "Linux": [""], "Android": [""], "Product Apple": [""]
+        "Windows": ["Шаг 1", "Шаг 2"], "Linux": [""], "Android": [""], "Product Apple": [""]
     }
+
     def init_internal(self):
         self.send("VPN можно подключить на любые девайсы, инструкции как "
                   "подключать для разных ОС представлены здесь.",
@@ -21,4 +22,3 @@ class OSHelpState(BaseState):
 
     def receive_callback(self, call: CallbackQuery, user_data: dict):
         return self
-
