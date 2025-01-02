@@ -3,6 +3,8 @@ import os
 import requests
 import json
 
+from modules.managerDataBase.models import User
+
 
 class Request:
     path = f'http://{os.environ["IP_VPN"]}/{os.environ["PATH_VPN"]}'
@@ -28,7 +30,7 @@ class Request:
                     &fp=chrome&sni=google.com&sid={json.loads(user['streamSettings'])['realitySettings']['shortIds'][0]}#user1""").replace(
                 "\n", "").replace(" ", "")
             b_user["link"] = link
-            dict_response[user["remark"]] = b_user
+            dict_response[str(user["remark"])] = User(**b_user)
         return dict_response
 
     def get_user_info(self, user_tag):
