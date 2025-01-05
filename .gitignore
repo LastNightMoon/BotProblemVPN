@@ -1,7 +1,3 @@
-test.py
-/.dockerignore
 credit.env
 .venv
 .idea
-.gitignore
-
