@@ -31,7 +31,7 @@ class MainMenu(BaseState):
     def receive_message(self, message: Message, user_data: dict):
         for button in self.main_button.values():
             if button["text"] == message.text:
-                return button["state"](self.bot, self.chat)
+                return button["state"](self)
         return self
 
     def receive_callback(self, call: CallbackQuery, user_data: dict):
