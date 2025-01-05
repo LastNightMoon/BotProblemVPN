@@ -1,3 +1,7 @@
+import datetime
+
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+
 from modules.botStates.BaseState import BaseState
 from vpn.request import Request
 
@@ -7,10 +11,16 @@ class InfoState(BaseState):
     def init_internal(self):
         req = Request()
         user = req.get_user_info(self.user_name)
+        keyboard = InlineKeyboardMarkup()
+        copy_button = InlineKeyboardButton(
+            text="Скопировать ссылку",
+            callback_data=f"copy_link:{user.link}"
+        )
+        # keyboard.add(copy_button)
         self.send(f"Информация о вашем подключении:\n" +\
-                  f"Скачано {user.down / 8} GB\n" +\
-                  f"Загружено {user.up / 1024} GB\n" +\
-                  f"Осталось {user.time / 60} дней"
-                  f"Ссылка для подключения:")
-        self.send(f"```{user.link}```")
+                  f"Скачано: {round(user.down / 1024**3, 1)} GB\n" +\
+                  f"Загружено: {round(user.up / 1024**3, 1)} GB\n" +\
+                  f"Последний день: {datetime.datetime.fromtimestamp(user.time / 1000).strftime("%d:%m:%Y")} дней\n" +\
+                  f"Ссылка для подключения:", reply_markup=keyboard)
+        self.send(f"```\n{user.link}\n```", parse_mode="MarkdownV2")
 

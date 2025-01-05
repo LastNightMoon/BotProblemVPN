@@ -44,4 +44,4 @@ class TGBot:
                                                 "data": {}}
             print(self.data)
 
-        self.bot.infinity_polling(timeout=200)
+        self.bot.infinity_polling(timeout=1000)
