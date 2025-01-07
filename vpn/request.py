@@ -65,6 +65,9 @@ class Request:
         print(response.text)
         return response.status_code
 
+    def payment(self, user_name: str):
+        pass
+
 
 if __name__ == '__main__':
     request = Request()
