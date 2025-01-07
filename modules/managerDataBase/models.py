@@ -8,3 +8,4 @@ class User:
     up: int
     down: int
     time: int
+    port : int
