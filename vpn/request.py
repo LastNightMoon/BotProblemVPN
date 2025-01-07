@@ -4,8 +4,6 @@ import random
 import requests
 import json
 
-from aiogram.types import user
-
 from modules.managerDataBase.models import User
 
 
