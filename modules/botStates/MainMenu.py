@@ -1,6 +1,7 @@
 from telebot.types import Message, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton
 
 from modules.botStates.InfoState import InfoState
+from modules.botStates.PayState import PayState
 from modules.botStates.TaskState import TaskState
 from modules.botStates.help.HelpState import HelpState
 from modules.botStates.BaseState import BaseState
@@ -15,6 +16,10 @@ class MainMenu(BaseState):
         "info": {
             "text": "Информация",
             "state": InfoState,
+        }, "pay":
+        {
+            "state": PayState,
+            "text": "Оплата"
         },
         "task": {
             "text": "Сообщить о проблеме",
