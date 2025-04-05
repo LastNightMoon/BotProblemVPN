@@ -1,0 +1,16 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+
+jobs:
+  show-env:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔎 Показать переменную окружения
+        run: echo "SERVER_HOST = ${{ secrets.SERVER_HOST }}"
